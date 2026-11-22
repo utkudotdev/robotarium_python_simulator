@@ -1,3 +1,4 @@
+from matplotlib.patches import Circle
 import numpy as np
 import rps.robotarium as robotarium
 from rps.utilities.controllers import create_si_position_controller
@@ -6,25 +7,47 @@ from rps.utilities.transformations import create_si_to_uni_dynamics
 from rps.utilities.barrier_certificates import (
     create_si_barrier_certificate_with_boundary,
 )
-from rps.utilities.misc import generate_random_poses
 
 # =========================================================
 # SIMULATION PARAMETERS
 # =========================================================
 N = 5
 iterations = 3000
-seed = 10
 
 # =========================================================
 # ROBOTARIUM INITIALIZATION
 # =========================================================
 # Initializing with the updated Width/Height/Spacing from MATLAB
-np.random.seed(seed)
-initial_conditions = generate_random_poses(N, width=2, height=1, spacing=0.5)
+# Randomly generated initial positions
+initial_conditions = np.array(
+    [
+        [
+            0.542641286533492,
+            0.26729646985255084,
+            -0.0029859753948191514,
+            -0.603874270480752,
+            -0.6617783268749291,
+        ],
+        [
+            -0.4792480506405985,
+            0.24880388253861185,
+            -0.27520335446915234,
+            0.26053071219895874,
+            -0.41166018582598973,
+        ],
+        [
+            1.1646500873100205,
+            2.8487544111850127,
+            -3.1167849646094092,
+            0.07660625016677525,
+            1.9642554329689128,
+        ],
+    ]
+)
 
 r = robotarium.Robotarium(
     number_of_robots=N,
-    show_figure=False,
+    show_figure=True,
     initial_conditions=initial_conditions,
     sim_in_real_time=False,
 )
@@ -88,6 +111,17 @@ formation_controller = create_si_position_controller(
     x_velocity_gain=0.8, y_velocity_gain=0.8, velocity_magnitude_limit=0.1
 )
 
+
+# =========================================================
+# PLOTTING SETUP
+# =========================================================
+rax = r._axes_handle
+waypoint_patches = []
+for i, w in enumerate(waypoints):
+    patch = Circle(xy=w, radius=0.05)
+    rax.add_patch(patch)
+    waypoint_patches.append(patch)
+
 t_poses = []
 t_waypoints = []
 
@@ -103,12 +137,16 @@ for t in range(iterations):
     if formation_reference is None:
         formation_reference = np.mean(x[:2], axis=1)
 
+    waypoint_patches[waypoint_state].set_color("tab:blue")
+
     waypoint = waypoints[waypoint_state]
     # Advance waypoint state if waypoint_robot is close to intended position
     intended_displacement = displacements[waypoint_robot]
     intended_position = waypoint + intended_displacement
     if np.linalg.norm(x[:2, waypoint_robot] - intended_position) < close_enough:
         waypoint_state = (waypoint_state + 1) % waypoints.shape[0]
+
+    waypoint_patches[waypoint_state].set_color("tab:green")
 
     t_waypoints.append(waypoint)
 
