@@ -127,16 +127,7 @@ r.debug()
 
 # Plot distance constraint error
 poses = np.array(poses)
-deltas = poses[:, :2, np.newaxis, :] - poses[:, :2, :, np.newaxis]
-distances = np.sqrt(np.sum(deltas**2, axis=1))
-per_robot_errors = np.ma.array(
-    distances - weights, mask=np.broadcast_to(~A, distances.shape)
-)
-edge_count = np.count_nonzero(np.triu(A))
-errors = np.sqrt(np.sum(per_robot_errors**2, axis=(1, 2)) / edge_count)
 
-print(f"Error at final timestep: {errors[-1]}")
-
-assert np.ma.count_masked(errors) == 0
-np.save("disp_poses.npy", poses)
-np.save("disp_errors.npy", errors.data)
+np.save("poses.npy", poses)
+np.save("adjacency.npy", A)
+np.save("weight_config.npy", weights)
