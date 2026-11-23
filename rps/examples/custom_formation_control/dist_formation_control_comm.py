@@ -24,7 +24,7 @@ initial_conditions = generate_random_poses(N, width=2, height=1, spacing=0.5)
 
 r = robotarium.Robotarium(
     number_of_robots=N,
-    show_figure=True,
+    show_figure=False,
     initial_conditions=initial_conditions,
     sim_in_real_time=False,
 )
